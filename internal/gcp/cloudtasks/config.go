@@ -17,7 +17,7 @@ type TaskQueue struct {
 	ProjectId               string  `json:"projectId" validate:"required"`
 	MinBackoff              string  `json:"minBackoff"`
 	MaxBackoff              string  `json:"maxBackoff"`
-	MaxConcurrentDispatches int  	`json:"maxConcurrentDispatches"`
+	MaxConcurrentDispatches int64  	`json:"maxConcurrentDispatches"`
 	MaxDispatchesPerSecond  float64 `json:"maxDispatchesPerSecond"`
 	ClientName              string
 }

@@ -8,17 +8,20 @@ import (
 	"github.com/spf13/viper"
 	"google.golang.org/api/option"
 	"metrio.net/fougere-lite/internal/gcp/cloudstorage"
+	"metrio.net/fougere-lite/internal/gcp/cloudtasks"
 	"metrio.net/fougere-lite/internal/utils"
 )
 
 type ClientsCommand struct {
 	cloudStorageClient *cloudstorage.Client
+	cloudtasksClient   *cloudtasks.Client
 	clientConfigs      []ProductConfig
 }
 
 type ProductConfig struct {
 	Client        string               `json:"client" validate:"omitempty"`
 	StorageBucket *cloudstorage.Config `json:"storageBucket" validate:"omitempty,dive"`
+	TaskQueue     *cloudtasks.Config   `json:"cloudTasks" validate:"omitempty,dive"`
 }
 
 func NewClientsCommand() *cobra.Command {
@@ -50,6 +53,12 @@ func (c *ClientsCommand) createClients() {
 				utils.CheckErr(err)
 			}
 		}
+		if clientConfig.TaskQueue != nil {
+			utils.CheckErr(cloudtasks.ValidateConfig(clientConfig.TaskQueue))
+			if err := c.cloudtasksClient.Create(clientConfig.TaskQueue); err != nil {
+				utils.CheckErr(err)
+			}
+		}
 	}
 }
 
@@ -62,6 +71,12 @@ func (c *ClientsCommand) initClients() error {
 		return err
 	}
 	c.cloudStorageClient = cloudStorageClient
+
+	cloudtasksClient, err := cloudtasks.NewClient(ctx, options...)
+	if err != nil {
+		return err
+	}
+	c.cloudtasksClient = cloudtasksClient
 
 	return nil
 
@@ -80,6 +95,9 @@ func (c *ClientsCommand) getConfig() error {
 		storageConfig, err := cloudstorage.GetStorageConfig(clientViper, client)
 		utils.CheckErr(err)
 		config.StorageBucket = storageConfig
+		taskConfig, err := cloudtasks.GetTaskConfig(clientViper, client)
+		utils.CheckErr(err)
+		config.TaskQueue = taskConfig
 		c.clientConfigs = append(c.clientConfigs, config)
 	}
 	return nil
