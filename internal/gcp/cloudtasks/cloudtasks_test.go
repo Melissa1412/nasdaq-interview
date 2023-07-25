@@ -22,6 +22,8 @@ func getMockedClient(url string) *Client {
 
 var _ = Describe("Storage client", func() {
 	var taskConfig TaskQueue
+	var parent string
+	var queueName string
 
 	BeforeEach(func() {
 		taskConfig = TaskQueue{
@@ -30,13 +32,28 @@ var _ = Describe("Storage client", func() {
 			ProjectId:  "projet-123",
 			ClientName: "banane",
 		}
+		parent = "projects/" + taskConfig.ProjectId + "/locations/" + taskConfig.Region
+		queueName = parent + "/queues/" + taskConfig.Name
+	})
+
+	Describe("create storage spec", func() {
+		It("succesfully creates storage spec", func() {
+			mockServerCalls := make(chan utils.MockServerCall, 0)
+			mockServer := utils.NewMockServer(mockServerCalls)
+			defer mockServer.Close()
+
+			client := getMockedClient(mockServer.URL)
+
+			task := client.createStorageSpec(taskConfig)
+			Expect(task.Name).To(Equal(queueName))
+		})
 	})
 	Describe("create queue", func() {
 		It("successfully creates the queue", func() {
 			mockServerCalls := make(chan utils.MockServerCall, 1)
 			mockServerCalls <- utils.MockServerCall{
 				UrlMatchFunc: func(url string) bool {
-					return strings.HasPrefix(url, "/v2/projects/projet-123/locations/northamerica-northeast1")
+					return strings.HasPrefix(url, "/v2/"+parent)
 				},
 				Method: "post",
 			}
@@ -54,7 +71,7 @@ var _ = Describe("Storage client", func() {
 			mockServerCalls := make(chan utils.MockServerCall, 1)
 			mockServerCalls <- utils.MockServerCall{
 				UrlMatchFunc: func(url string) bool {
-					return strings.HasPrefix(url, "/v2/projects/projet-123/locations/northamerica-northeast1/queues/queue1")
+					return strings.HasPrefix(url, "/v2/"+queueName)
 				},
 				Method: "patch",
 			}

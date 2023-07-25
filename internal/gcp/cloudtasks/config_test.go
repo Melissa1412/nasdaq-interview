@@ -41,7 +41,7 @@ var _ = Describe("config", func() {
 			Expect(queue.ProjectId).To(Equal("some-project"))
 			Expect(queue.MinBackoff).To(Equal("1s"))
 			Expect(queue.MaxBackoff).To(Equal("10s"))
-			Expect(queue.MaxConcurrentDispatches).To(Equal(1000))
+			Expect(queue.MaxConcurrentDispatches).To(Equal(int64(1000)))
 			Expect(queue.MaxDispatchesPerSecond).To(Equal(500.0))
 		})
 		It("returns an error if cannot parse the config", func() {

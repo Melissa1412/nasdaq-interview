@@ -31,6 +31,20 @@ var _ = Describe("Storage client", func() {
 			ClientName: "banane",
 		}
 	})
+
+	Describe("create storage spec", func() {
+		It("succesfully creates storage spec", func() {
+			mockServerCalls := make(chan utils.MockServerCall, 0)
+			mockServer := utils.NewMockServer(mockServerCalls)
+			defer mockServer.Close()
+
+			client := getMockedClient(mockServer.URL)
+
+			bucket := client.createStorageSpec(bucketConfig)
+			Expect(bucket.Name).To(Equal(bucketConfig.Name))
+			Expect(bucket.StorageClass).To(Equal("MULTI_REGIONAL"))
+		})
+	})
 	Describe("create bucket", func() {
 		It("successfully creates the bucket", func() {
 			mockServerCalls := make(chan utils.MockServerCall, 1)
@@ -67,4 +81,45 @@ var _ = Describe("Storage client", func() {
 			Expect(err).ToNot(HaveOccurred())
 		})
 	})
+	// Describe("get bucket", func() {
+	// 	It("successfully gets the bucket", func() {
+	// 		mockServerCalls := make(chan utils.MockServerCall, 2)
+	// 		mockServerCalls <- utils.MockServerCall{
+	// 			UrlMatchFunc: func(url string) bool {
+	// 				return strings.HasPrefix(url, "/b?")
+	// 			},
+	// 			Method: "post",
+	// 		}
+	// 		mockServerCalls <- utils.MockServerCall{
+	// 			UrlMatchFunc: func(url string) bool {
+	// 				return strings.HasPrefix(url, "/b/patate-23423k")
+	// 			},
+	// 			Method: "get",
+	// 		}
+	// 		mockServer := utils.NewMockServer(mockServerCalls)
+	// 		defer mockServer.Close()
+
+	// 		client := getMockedClient(mockServer.URL)
+
+	// 		err := client.create(bucketConfig)
+	// 		_, err = client.get(bucketConfig.Name)
+	// 		Expect(err).ToNot(HaveOccurred())
+	// 	})
+	// 	It("returns an error if bucket does not exist", func() {
+	// 		mockServerCalls := make(chan utils.MockServerCall, 1)
+	// 		mockServerCalls <- utils.MockServerCall{
+	// 			UrlMatchFunc: func(url string) bool {
+	// 				return strings.HasPrefix(url, "/b/patate-23423k?")
+	// 			},
+	// 			Method: "get",
+	// 		}
+	// 		mockServer := utils.NewMockServer(mockServerCalls)
+	// 		defer mockServer.Close()
+
+	// 		client := getMockedClient(mockServer.URL)
+
+	// 		_, err := client.get(bucketConfig.Name)
+	// 		Expect(err).To(HaveOccurred())
+	// 	})
+	// })
 })
